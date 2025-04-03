@@ -1,6 +1,6 @@
 <?php
 
-namespace Utyemma\Chargepro\Models\Plans;
+namespace App\Models\Plans;
 
 use Illuminate\Database\Eloquent\Model;
 
