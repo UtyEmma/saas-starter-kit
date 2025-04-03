@@ -1,0 +1,23 @@
+- Have a Supported Countries Tables which can be created and checked based on user IP address
+- Have a currencies table with a list of currencies which can be associated with a specific country
+
+- Have a plans table for each subscription plan a user can join
+- Have a free plan which can be set to be the default plan for the user
+- If a free plan is set, that means that the user may proceed to use the platform without having to pay but only accessing features available on that plan
+- If a free plan is not set or is not the default plan or is disabled, the user will have to subscribe to a plan upon signup and when trying to user features
+
+- The timeline table will have the timelines that users may subscribe to, it may be yearly, monthly etc. It will be dynamic by setting the interval type and the count of the interval (6 month's could be set by setting the interval to monthly and the count to 6)
+- Each timeline will have a discount available on it based on the default oor base timeline. Example, if the default timeline is monthly and a 10% discount is set, then the yearly price will be 10% less of the monthly price * 12
+- The admin may also set a custom timeline price for each plan, hence may choose to ignore the dicsount price set for the timeline and set a custom price for a specific plan on a specific timeline or across all timelines. He may also select a specific currency to which a particular custom timeline price may apply to.
+
+- The plan prices will by default be converted to the current currency of the user. However, the admin may set the plan prices for any or all currencies. If this is set, then that price will be the price for that currency and will also be used in the timeline conversions. 
+
+- Payment gateways may be dynamically configured to be available in all countries or in specific countries.
+- Each payment gateways will have a class extending an abstract method which will handle payment configuration via that payment method
+
+- Subscriptions will have the plan_id and the timeline_id which will determine the price the user will pay based on their country and the interval of payment
+
+- The subscripton flow will start by creating a subscription with the status of pending and then the user is redirected to the payment page, to complete the payment. After the payment is made, the transaction is recorded for invoice purposes and the subscription is set to the status of running.
+
+
+
