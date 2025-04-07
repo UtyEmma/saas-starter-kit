@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 // use App\Services\SubscriptionService;
 
-use App\Models\Transaction;
+use App\Models\Transactions\Transaction;
 use App\Services\SubscriptionService;
 use App\Services\TransactionService;
 use Illuminate\Http\Request;
@@ -22,15 +22,16 @@ class SubscriptionController extends Controller {
         $plan = $planPrice->plan;
 
         if(!$plan->trial_period) return back()->with('error', 'Trial is not available for this plan');
-        $user = Auth::user();
+        $user = authenticated();
         
         $this->subscriptionService->withTrial($plan->trial_period)->create($user, $planPrice);
         return back()->with('success', '');
     }
 
     function initiate(Request $request, PlanPrice $planPrice) {
-        $user = Auth::user();
-        [$status, $message, $data] = $this->subscriptionService->initiate($user, $planPrice);
+        $user = authenticated();
+        $subscription  = $this->subscriptionService->create($user, $planPrice);
+        [$status, $message, $data] = $this->subscriptionService->initiate($subscription);
         if(!$status) return back()->with('error', $message);
         return back()->with('success', $data);
     }

@@ -8,7 +8,7 @@ use App\Contracts\Payment\HandlesSubscription;
 use App\Contracts\Payment\RedirectPayment;
 use App\Enums\PaymentStatus;
 use App\Enums\RequestStatus;
-use App\Models\Transaction;
+use App\Models\Transactions\Transaction;
 use App\PaymentGateways\Stripe\Concerns\ManagePayment;
 use App\PaymentGateways\Stripe\Concerns\ManageSubscriptions;
 use App\Support\HttpResponse;

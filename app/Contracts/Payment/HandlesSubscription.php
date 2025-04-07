@@ -3,7 +3,7 @@
 namespace App\Contracts\Payment;
 
 use App\Models\Subscription;
-use App\Models\Transaction;
+use App\Models\Transactions\Transaction;
 use App\Support\HttpResponse;
 
 interface HandlesSubscription {
@@ -13,5 +13,7 @@ interface HandlesSubscription {
     function cancelSubscription(Subscription $subscription): HttpResponse;
 
     function getSubscriptionStatus(Subscription $subscription): HttpResponse;
+
+    function getSubscriptionId(mixed $response): string;
 
 }

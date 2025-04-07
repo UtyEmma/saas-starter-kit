@@ -5,6 +5,7 @@ namespace App\Enums;
 enum SubscriptionStatus {
 
     case ACTIVE;
-    case INACTIVE;
+    case CANCELLED;
+    case EXPIRED;
 
 }

@@ -3,7 +3,7 @@
 namespace App\PaymentGateways\Stripe\Concerns;
 
 use App\Enums\RequestStatus;
-use App\Models\Transaction;
+use App\Models\Transactions\Transaction;
 use App\Support\HttpResponse;
 
 trait ManagePayment {
@@ -33,6 +33,10 @@ trait ManagePayment {
         }catch(\Exception $e){
             return $this->response(RequestStatus::ERROR, ['message' => $e->getMessage()]);
         }
+    }
+
+    function getCheckoutId($response): string {
+        return $response['id'];
     }
 
 }

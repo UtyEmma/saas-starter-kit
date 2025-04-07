@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Enums\Transactions;
 use App\Models\Subscription;
-use App\Models\Transaction;
+use App\Models\Transactions\Transaction;
 use App\Models\User;
 use App\Support\Locale;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -12,26 +12,22 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Utyemma\Chargepro\Models\Plans\PlanPrice;
 
-class SubscriptionService
-{
+class SubscriptionService {
 
     protected User | Authenticatable | null $user = null;
 
     public function __construct(
-        private TransactionService $transactionService,
-        private Locale $locale 
-    ) {
+        private TransactionService $transactionService
+    ) { }
 
+    static function make(){
+        $locale = new Locale;
+        $transactionService = new TransactionService();
+        return new static($transactionService);
     }
 
-    function initiate($user, PlanPrice $planPrice){
-        $transaction = $this->transactionService->create($user,$planPrice->paymentGateway, Transactions::SUBSCRIPTION, [
-            'amount' => $planPrice->amount,
-            'payload' => [
-                'plan_price' => $planPrice->id,
-                'plan' => $planPrice->plan_id,
-            ],
-        ]);
+    function initiate(Subscription $subscription){
+        $transaction = $this->transactionService->create($subscription, $subscription->planPrice->amount);
 
         $paymentProvider = $transaction->paymentGateway->provider();
         return $paymentProvider->subscribe($transaction);        
@@ -39,7 +35,7 @@ class SubscriptionService
 
     function subscribe(Transaction $transaction) {
         $user = $transaction->user;
-        [$status, $message] = $this->transactionService->verify($transaction);
+        [$status, $message, $transaction] = $this->transactionService->verify($transaction);
 
         if(!$status) return state(false, $message);
         if(!$planPrice = PlanPrice::with('plan')->firstWhere(['id' => $transaction->payload['plan_price']])){
@@ -74,12 +70,32 @@ class SubscriptionService
             'plan_price_id' => $planPrice->id,
             'expires_at' => $ends_at,
             'starts_at' => $starts_at,
-            'currency_code' => $this->locale->currency()->code(),
             'auto_renews' => true,
             'trial_ends_at' => $trial_ends_at,
             'grace_ends_at' => $grace_ends_at
         ]);
     }
+    
+    function sendExpirationWarning($days = 7) {
+        $expiringSubscriptions = Subscription::isExpiring($days)->with('user')->get('user');
+        $users = $expiringSubscriptions->pluck('user')->unique('id');
+
+        notify("Your subscription will expire in {$days} days")
+            ->line("Just a reminder — your current subscription will expire in {{$days}} days. To avoid any interruptions in service, please make sure to renew your subscription before it ends.")
+            ->action('Manage Subscription', '')
+            ->priority(1)
+            ->sendNow($users, ['mail']);
+    }
+
+    function cancel(Subscription $subscription){
+
+    }
+
+    function upgrade(Subscription $subscription) {
+
+    }
+
+
 
 
 }

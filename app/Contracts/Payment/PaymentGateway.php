@@ -4,7 +4,7 @@ namespace App\Contracts\Payment;
 
 use Illuminate\Http\Client\PendingRequest;
 use App\Models\Subscription;
-use App\Models\Transaction;
+use App\Models\Transactions\Transaction;
 use App\Support\HttpResponse;
 use Illuminate\Http\Client\Response;
 

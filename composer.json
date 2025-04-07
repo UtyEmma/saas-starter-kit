@@ -15,7 +15,8 @@
         "laravel/tinker": "^2.10.1",
         "stripe/stripe-php": "^16.6",
         "tightenco/ziggy": "^2.4",
-        "utyemma/chargepro": "*"
+        "utyemma/chargepro": "*",
+        "utyemma/laranotice": "^1.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

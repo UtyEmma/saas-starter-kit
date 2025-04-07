@@ -4,7 +4,7 @@ namespace App\PaymentGateways\Stripe\Concerns;
 
 use App\Enums\RequestStatus;
 use App\Models\Subscription;
-use App\Models\Transaction;
+use App\Models\Transactions\Transaction;
 use App\Support\HttpResponse;
 
 trait ManageSubscriptions {
@@ -23,6 +23,9 @@ trait ManageSubscriptions {
                 'currency' => strtolower($transaction->currency_code)
             ]);
 
+            $transaction->provider_reference = $checkout->id;
+            $transaction->save();
+
             return $this->response(RequestStatus::OK, $checkout, [
                 'url' => $checkout->url
             ]);
@@ -37,6 +40,10 @@ trait ManageSubscriptions {
 
     function getSubscriptionStatus(Subscription $subscription): HttpResponse {
         return $this->response(RequestStatus::OK);
+    }
+
+    function getSubscriptionId($response): string {
+        return $response['subscription']['id'];
     }
 
 }

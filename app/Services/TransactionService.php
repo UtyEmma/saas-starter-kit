@@ -6,15 +6,18 @@ use App\Enums\PaymentGateways;
 use App\Enums\PaymentMethods;
 use App\Enums\PaymentStatus;
 use App\Enums\Transactions;
-use App\Models\Transaction;
+use App\Models\Subscription;
+use App\Models\Transactions\Transaction;
+use App\Models\User;
 use App\Support\Locale;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class TransactionService {
 
-    function __construct(private Locale $locale) {
-
+    function __construct(protected User | null $user = null) {
+        $this->user = $user ?? authenticated();
     }
 
     function reference(){
@@ -23,13 +26,12 @@ class TransactionService {
         return $reference;
     }
 
-    function create($user, PaymentGateways $paymentGateway, Transactions $transactionType, $payload = []){
-        return $user->transactions()->create([
+    function create(Model $transactable, float | int $amount){
+        return $transactable->transaction()->create([
             'reference' => $this->reference(), 
-            'payment_gateway' => $paymentGateway,
-            'currency_code' => $this->locale->currency()->code,
-            'type' => $transactionType,
-            ...$payload
+            'payment_gateway' => $transactable->provider,
+            'amount' => $amount,
+            'user_id' => $transactable->user_id
         ]);
     }
 
@@ -44,13 +46,8 @@ class TransactionService {
 
     function verify(Transaction $transaction){
         $provider = $transaction->provider();
-        [$status, $message, $data] =  $provider->verify($transaction);
+        [$status, $message, $transaction] =  $provider->complete($transaction);
         if(!$status) return state(false, $message);
-
-        $transaction->status = $message;
-        $transaction->response = $data;
-        $transaction->save();
-
         return state(true, $transaction->status->message(), $transaction);
     }
 

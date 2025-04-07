@@ -9,7 +9,7 @@ use App\Contracts\Payment\PaymentGateway;
 use App\Contracts\Payment\RedirectPayment;
 use App\Enums\RequestStatus;
 use App\Enums\Transactions;
-use App\Models\Transaction;
+use App\Models\Transactions\Transaction;
 use App\Support\HttpResponse;
 use Illuminate\Http\Client\Response;
 
@@ -109,10 +109,12 @@ abstract class BasePaymentGateway implements PaymentGateway {
 
         return $this->onResponse(
             httpResponse: $response, 
-            onFailed: fn($response) => $transaction->delete(),
+            onFailed: function($response) use($transaction) {
+                $transaction->saveHistory($response);
+                $transaction->delete();
+            },
             onSuccess: function($response) use($transaction){
-                $transaction->response = $response->context();
-                $transaction->save();
+                $transaction->saveHistory($response);
             },
             context: function($response) use($transaction) {
                 return [
@@ -124,11 +126,41 @@ abstract class BasePaymentGateway implements PaymentGateway {
         );
     }
 
-    function paymentStatus(Transaction $transaction) {
+    private function setSubscriptionId($response) {
+        if(!$this instanceOf HandlesSubscription) {
+            $className = static::$instance;
+            throw new \Exception("{$className} must implement the ".HandlesSubscription::class." interface");
+        }
+        
+        return $this->getSubscriptionId($response);
+    }
+
+    private function setCheckoutId($response) {
+        if(!$this instanceOf HandlesCheckout) {
+            $className = static::$instance;
+            throw new \Exception("{$className} must implement the ".HandlesCheckout::class." interface");
+        }
+        
+        return $this->getCheckoutId($response);
+    }
+
+    function complete(Transaction $transaction) {
         $response = $this->verify($transaction);
 
-        return $this->onResponse(
-            httpResponse: $response,
-        );
+        $transactable = $transaction->transactable;
+
+        $transactable->reference = match($transaction->type) {
+            Transactions::SUBSCRIPTION => $this->setSubscriptionId($response->context()),
+            Transactions::PAYMENT => $this->setCheckoutId($response->context())
+        };
+
+        $transactable->save();
+
+        $transaction->status = $response->message();
+        $transaction->save();
+
+        $transaction->saveHistory($response);
+
+        return state(true, '', $transaction);
     }
 }
