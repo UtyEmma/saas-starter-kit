@@ -9,6 +9,8 @@ use App\Contracts\Payment\PaymentGateway;
 use App\Contracts\Payment\RedirectPayment;
 use App\Enums\RequestStatus;
 use App\Enums\Transactions;
+use App\Models\Plans\PlanPrice;
+use App\Models\Subscription;
 use App\Models\Transactions\Transaction;
 use App\Support\HttpResponse;
 use Illuminate\Http\Client\Response;
@@ -53,7 +55,7 @@ abstract class BasePaymentGateway implements PaymentGateway {
         return state(true, $httpResponse->message(), $context ? $context($httpResponse) : $httpResponse->context());
     }
 
-    function response(RequestStatus $requestStatus, array $context = [], mixed $message = ''){
+    function response(RequestStatus $requestStatus, array|object $context = [], mixed $message = ''){
         return new HttpResponse($requestStatus, $context, $message);
     }
 
@@ -162,5 +164,18 @@ abstract class BasePaymentGateway implements PaymentGateway {
         $transaction->saveHistory($response);
 
         return state(true, '', $transaction);
+    }
+
+    function upgrade(Subscription $subscription, PlanPrice $planPrice) {
+        if(!$this instanceOf HandlesSubscription) {
+            $className = static::$instance;
+            throw new \Exception("{$className} must implement the ".HandlesSubscription::class." interface");
+        }
+
+        $response = $this->upgradeSubscription($subscription, $planPrice);
+
+        if(!$response->success()) return state(false, $response->context(), $response->message());
+
+        return state(true, $response->context(), $response->message());
     }
 }

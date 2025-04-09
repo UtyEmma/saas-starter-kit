@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('role');
+        Schema::create('plan_prices', function (Blueprint $table) {
+            $table->id();
+            $table->string('plan_id');
+            $table->string('price');
+            $table->string('timeline_id');
             $table->string('status');
+            $table->timestamps();
         });
     }
 
@@ -22,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('plan_prices');
     }
 };

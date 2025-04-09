@@ -11,7 +11,7 @@ class HttpResponse {
 
     function __construct(
         private RequestStatus $status,
-        private array $context = [],
+        private array|object $context = [],
         private mixed $message = ''
     ) { }
 

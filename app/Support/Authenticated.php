@@ -9,6 +9,7 @@ class Authenticated {
 
 
     protected User | null $user = null; 
+    protected $instance = null;
 
     static function user($relations = [], $guard = 'web'): User | null {
         if(!static::$user) { 

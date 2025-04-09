@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\Transactions;
+use App\Models\Plans\Plan;
 use App\Models\Subscription;
 use App\Models\Transactions\Transaction;
 use App\Models\User;
@@ -88,11 +89,20 @@ class SubscriptionService {
     }
 
     function cancel(Subscription $subscription){
-
+        return $subscription->provider->cancel();
     }
 
-    function upgrade(Subscription $subscription) {
+    function upgrade(Subscription $subscription, Plan $plan) {
+        if($subscription->plan->is($plan)) {
+            return state(false, "You are already on the {$plan->name} plan! You may upgrade to a different plan");
+        }
 
+        $currentPlanPrice = $subscription->planPrice;
+        if(!$newPlanPrice = $plan->pricies()->whereTimelineId($currentPlanPrice->timeline_id)->first()) {
+            return state(false, "You cannot upgrade to the {$plan->name} because it does not support your current subscripton timeline. Please select a different plan.");
+        }
+
+        $subscription->provider->upgrade($subscription, $plan);
     }
 
 

@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use App\Support\Authenticated;
+use App\Support\Locale;
 use App\Support\State;
 
 if(!function_exists('state')) {
@@ -16,3 +17,10 @@ if(!function_exists('authenticated')){
         return Authenticated::user($relations, $guard);
     }
 }
+
+if(!function_exists('locale')) {
+    function locale(){
+        return Locale::new();
+    }
+}
+

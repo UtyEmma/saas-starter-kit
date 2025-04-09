@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('transaction_histories', function (Blueprint $table) {
             $table->id();
+            $table->string('status');
+            $table->string('transaction_id');
+            $table->json('meta');
             $table->timestamps();
         });
     }

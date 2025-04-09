@@ -8,22 +8,30 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Plans\PlanPrice;
 use App\Models\Plans\Plan;
+use App\Models\Transactions\Transaction;
 use App\Services\TransactionService;
 
 class Subscription extends Model {
     
-    protected $fillable = ['user_id', 'plan_id', 'plan_price_id', 'expires_at', 'provider', 'reference', 'auto_renews', 'meta', 'status'];
+    protected $fillable = ['user_id', 'plan_id', 'plan_price_id', 'expires_at', 'starts_at', 'trial_ends_at', 'provider', 'reference', 'auto_renews', 'meta', 'status'];
 
     protected $casts = [
         'status' => SubscriptionStatus::class,
         'provider' => PaymentGateways::class,
-        'meta' => 'array'
+        'meta' => 'array',
+        'expires_at' => 'datetime',
+        'starts_at' => 'datetime',
+        'trial_ends_at' => 'datetime',
     ];  
 
     public static function booted(){
         self::created(function($subscription) {
             (new TransactionService($subscription->user))->create($subscription, $subscription->planPrice->price);
         });
+    }
+
+    function transaction(){
+        return $this->morphOne(Transaction::class, 'transactable');
     }
 
     function user(){
@@ -56,6 +64,18 @@ class Subscription extends Model {
 
     function getIsActiveAttribute () {
         return $this->status == SubscriptionStatus::ACTIVE && now()->lessThanOrEqualTo($this->expires_at);
+    }
+
+    function getProviderAttribute(){
+        return $this->provider->provider();
+    }
+
+    function getDaysUsedAttribute(){
+        return $this->starts_at->diffInDays(now());
+    }
+
+    function getDaysAttribute(){
+        return $this->starts_at->diffInDays($this->expires_at);
     }
 
 }
