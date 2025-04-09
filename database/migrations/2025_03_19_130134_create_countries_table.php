@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('currency_code')->nullable();
             $table->string('intl_phone');
             $table->boolean('is_default');
+            $table->string('status');
             $table->softDeletes();
             $table->timestamps();
         });

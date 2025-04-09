@@ -6,9 +6,6 @@ enum Status:string {
 
     case ACTIVE = 'active';
     case INACTIVE = 'inactive';
-    case EXCEEDED = 'exceeded';
-    case UNAVAILABLE = 'unavailable';
-    case AVAILABLE = 'available';
 
     function label(){
         return match($this) {

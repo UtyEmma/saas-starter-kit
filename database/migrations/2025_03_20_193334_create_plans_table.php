@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description');
-            $table->string('shortcode');
-            $table->boolean('is_popular');
             $table->string('trial_period')->nullable();
             $table->string('grace_period')->nullable();
-            $table->boolean('is_active');
-            $table->boolean('is_default');
-            $table->boolean('is_free');
+            $table->string('status');
+            $table->boolean('is_popular')->nullable();
+            $table->boolean('is_default')->nullable();
+            $table->boolean('is_free')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

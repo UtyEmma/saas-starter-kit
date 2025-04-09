@@ -2,20 +2,19 @@
 
 namespace App\Models\Plans;
 
+use App\Concerns\Models\HasStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Plan extends Model {
-    use SoftDeletes;
+    use SoftDeletes, HasStatus;
     
-    protected $fillable = ['name', 'description', 'shortcode', 'is_popular', 'description', 'trial_period', 'grace_period', 'is_active', 'is_default', 'is_free'];
+    protected $fillable = ['name', 'description', 'is_popular', 'description', 'trial_period', 'grace_period', 'is_default', 'is_free'];
 
     protected $casts = [
-        'is_active' => 'boolean'
-    ];
-
-    protected $attributes = [
-        'is_active' => true
+        'is_popular' => 'boolean',
+        'is_default' => 'boolean',
+        'is_free' => 'boolean',
     ];
 
     function prices(){

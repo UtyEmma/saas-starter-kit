@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Concerns\Models\HasStatus;
 use App\Support\Locale;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 class Country extends Model {
+    use HasStatus;
     
     protected $fillable = ['name', 'iso_code', 'iso_code_3', 'currency_code', 'intl_phone', 'payment_methods', 'is_default'];
 
