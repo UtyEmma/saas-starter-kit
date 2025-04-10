@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\Locale;
 
-use App\Filament\Resources\CountryResource\Pages;
+use App\Filament\Resources\Locale\CountryResource\Pages;
 use App\Filament\Resources\CountryResource\RelationManagers;
 use App\Forms\Components\SelectCurrency;
 use App\Forms\Components\SelectStatus;
@@ -21,7 +21,7 @@ class CountryResource extends Resource
 {
     protected static ?string $model = Country::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-flag';
 
     protected static ?string $navigationGroup = 'Locale';
 

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\Billing;
 
-use App\Filament\Resources\TimelineResource\Pages;
-use App\Filament\Resources\TimelineResource\RelationManagers;
-use App\Models\Plans\Timeline;
+use App\Filament\Resources\Billing\TransactionResource\Pages;
+use App\Filament\Resources\Billing\TransactionResource\RelationManagers;
+use App\Models\Transactions\Transaction;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,12 +13,13 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class TimelineResource extends Resource
+class TransactionResource extends Resource
 {
-    protected static ?string $model = Timeline::class;
+    protected static ?string $model = Transaction::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'Subscriptions';
+    protected static ?string $navigationIcon = 'heroicon-o-queue-list';
+
+    protected static ?string $navigationGroup = 'Billing';
 
     public static function form(Form $form): Form
     {
@@ -57,9 +58,9 @@ class TimelineResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTimelines::route('/'),
-            'create' => Pages\CreateTimeline::route('/create'),
-            'edit' => Pages\EditTimeline::route('/{record}/edit'),
+            'index' => Pages\ListTransactions::route('/'),
+            'create' => Pages\CreateTransaction::route('/create'),
+            'edit' => Pages\EditTransaction::route('/{record}/edit'),
         ];
     }
 }

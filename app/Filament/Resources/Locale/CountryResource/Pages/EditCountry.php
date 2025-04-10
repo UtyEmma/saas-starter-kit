@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\CountryResource\Pages;
+namespace App\Filament\Resources\Locale\CountryResource\Pages;
 
-use App\Filament\Resources\CountryResource;
+use App\Filament\Resources\Locale\CountryResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
