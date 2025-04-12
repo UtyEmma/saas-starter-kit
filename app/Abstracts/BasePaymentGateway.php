@@ -73,7 +73,7 @@ abstract class BasePaymentGateway implements PaymentGateway {
 
     function subscribe(Transaction $transaction): array {
         if(!$this instanceOf HandlesSubscription) {
-            $className = static::$instance;
+            $className = static::$instance::class;
             throw new \Exception("{$className} must implement the ".HandlesSubscription::class." interface");
         }
 
@@ -103,7 +103,7 @@ abstract class BasePaymentGateway implements PaymentGateway {
 
     function checkout(Transaction $transaction): array {
         if(!$this instanceOf HandlesCheckout) {
-            $className = static::$instance;
+            $className = static::$instance::class;
             throw new \Exception("{$className} must implement the ".HandlesCheckout::class." interface");
         }
         
@@ -139,7 +139,7 @@ abstract class BasePaymentGateway implements PaymentGateway {
 
     private function setCheckoutId($response) {
         if(!$this instanceOf HandlesCheckout) {
-            $className = static::$instance;
+            $className = static::$instance::class;
             throw new \Exception("{$className} must implement the ".HandlesCheckout::class." interface");
         }
         
@@ -168,7 +168,7 @@ abstract class BasePaymentGateway implements PaymentGateway {
 
     function upgrade(Subscription $subscription, PlanPrice $planPrice) {
         if(!$this instanceOf HandlesSubscription) {
-            $className = static::$instance;
+            $className = static::$instance::class;
             throw new \Exception("{$className} must implement the ".HandlesSubscription::class." interface");
         }
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Concerns\Models\HasStatus;
+use App\Enums\PaymentGateways;
 use App\Support\Locale;
 use Illuminate\Database\Eloquent\Casts\AsEnumCollection;
 use Illuminate\Database\Eloquent\Model;
@@ -11,14 +12,15 @@ use Illuminate\Support\Facades\Auth;
 class Country extends Model {
     use HasStatus;
     
-    protected $fillable = ['name', 'iso_code', 'iso_code_3', 'currency_code', 'intl_phone', 'payment_methods', 'is_default'];
+    protected $fillable = ['name', 'iso_code', 'iso_code_3', 'currency_code', 'intl_phone', 'gateway', 'is_default'];
 
     protected $primary_key = 'iso_code';
     public $incrementing = false;
 
     function casts(){
         return [
-            'is_default' => 'boolean'
+            'is_default' => 'boolean',
+            'gateway' => PaymentGateways::class
         ];
     }
 
@@ -32,6 +34,10 @@ class Country extends Model {
 
     function currency(){
         return $this->belongsTo(Currency::class, 'currency_code', 'code');
+    }
+
+    function gateway(){
+        return $this->belongsTo(PaymentGateway::class, 'gateway', 'shortcode');
     }
 
     function getFlagAttribute(){

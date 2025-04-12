@@ -9,6 +9,7 @@ use App\Forms\Components\SelectStatus;
 use App\Models\Country;
 use App\Tables\Columns\StatusColumn;
 use Filament\Forms;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -36,16 +37,6 @@ class CountryResource extends Resource
                     ->required()
                     ->columnSpanFull()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('iso_code')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('iso_code_3')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('intl_phone')
-                    ->tel()
-                    ->required()
-                    ->maxLength(255),
                 SelectCurrency::make('currency.name')
                     ->relationship(name: 'currency', titleAttribute: 'name')
                     ->label("Currency")
@@ -62,6 +53,24 @@ class CountryResource extends Resource
                             ->required(),
                         Toggle::make('is_default')
                             ->required(),
+                    ]),
+                Forms\Components\Select::make('gateway')
+                    ->label("Payment Gateway")
+                    ->relationship('gateway', 'name')
+                    ->native(false),
+                Grid::make(3)
+                    ->schema([
+                        Forms\Components\TextInput::make('iso_code')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('iso_code_3')
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\TextInput::make('intl_phone')
+                            ->tel()
+                            ->prefix('+')
+                            ->required()
+                            ->maxLength(255),
                     ]),
                 SelectStatus::make('status')
                     ->native(false)

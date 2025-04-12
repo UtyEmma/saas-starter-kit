@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Plans;
 
 use App\Filament\Resources\Plans\PlanResource\Pages;
 use App\Filament\Resources\Plans\PlanResource\RelationManagers;
-use App\Filament\Resources\Plans\PlanResource\RelationManagers\PricesRelationManager;
 use App\Forms\Components\SelectStatus;
 use App\Models\Plans\Plan;
 use App\Tables\Columns\StatusColumn;
@@ -95,7 +94,8 @@ class PlanResource extends Resource
     public static function getRelations(): array
     {
         return [
-            PricesRelationManager::class
+            RelationManagers\PricesRelationManager::class,
+            RelationManagers\PlanFeaturesRelationManager::class
         ];
     }
 

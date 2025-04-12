@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('iso_code_3');
             $table->string('currency_code')->nullable();
             $table->string('intl_phone');
+            $table->string('gateway');
             $table->boolean('is_default');
             $table->string('status');
             $table->softDeletes();

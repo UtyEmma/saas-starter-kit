@@ -1,24 +1,27 @@
 <?php
 
-namespace App\Filament\Resources\Plans;
+namespace App\Filament\Resources\Features;
 
 use App\Enums\Timelines;
-use App\Filament\Resources\Plans\TimelineResource\Pages;
-use App\Filament\Resources\Plans\TimelineResource\RelationManagers;
-use App\Models\Plans\Timeline;
+use App\Filament\Resources\Features\FeatureResource\Pages;
+use App\Filament\Resources\Features\FeatureResource\RelationManagers;
+use App\Forms\Components\SelectStatus;
+use App\Models\Features\Feature;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use App\Enums\Features;
+use Filament\Forms\Components\Select;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class TimelineResource extends Resource
+class FeatureResource extends Resource
 {
-    protected static ?string $model = Timeline::class;
+    protected static ?string $model = Feature::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-clock';
+    protected static ?string $navigationIcon = 'heroicon-o-tag';
     protected static ?string $navigationGroup = 'Configuration';
 
     public static function form(Form $form): Form
@@ -28,16 +31,29 @@ class TimelineResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('shortcode')
+                Forms\Components\Select::make('shortcode')
                     ->required()
-                    ->maxLength(255),
-                Forms\Components\Select::make('timeline')
                     ->native(false)
-                    ->options(Timelines::options()),
-                Forms\Components\TextInput::make('count')
+                    ->disabled()
+                    ->options(Features::options()),
+                Forms\Components\Textarea::make('description')
+                    ->columnSpanFull()
+                    ->default(null),
+                Forms\Components\TextInput::make('reset_period')
+                    ->maxLength(255)
+                    ->default(null),
+                Select::make('reset_interval')
+                    ->options(Timelines::options())
+                    ->native(false)
+                    ->default(null),
+                Forms\Components\TextInput::make('limit')
+                    ->maxLength(255)
+                    ->default(null),
+                Forms\Components\TextInput::make('unit')
+                    ->maxLength(255)
+                    ->default(null),
+                SelectStatus::make('status')    
                     ->required()
-                    ->default(1)
-                    ->numeric()
             ]);
     }
 
@@ -49,9 +65,15 @@ class TimelineResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('shortcode')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('timeline')
+                Tables\Columns\TextColumn::make('description')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('count')
+                Tables\Columns\TextColumn::make('reset_period')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('reset_interval')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('limit')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('unit')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -85,9 +107,9 @@ class TimelineResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTimelines::route('/'),
-            'create' => Pages\CreateTimeline::route('/create'),
-            'edit' => Pages\EditTimeline::route('/{record}/edit'),
+            'index' => Pages\ListFeatures::route('/'),
+            'create' => Pages\CreateFeature::route('/create'),
+            'edit' => Pages\EditFeature::route('/{record}/edit'),
         ];
     }
 }

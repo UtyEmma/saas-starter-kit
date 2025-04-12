@@ -3,6 +3,8 @@
 namespace App\Models\Plans;
 
 use App\Concerns\Models\HasStatus;
+use App\Models\Features\Feature;
+use App\Models\Features\PlanFeature;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -16,6 +18,15 @@ class Plan extends Model {
         'is_default' => 'boolean',
         'is_free' => 'boolean',
     ];
+
+    function features(){
+        return $this->belongsToMany(Feature::class, 'plan_features')
+            ->withPivot(['limit', 'reset_period', 'reset_interval']);
+    }
+
+    function planFeatures(){
+        return $this->hasMany(PlanFeature::class);
+    }
 
     function prices(){
         return $this->hasMany(PlanPrice::class);

@@ -15,9 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('shortcode');
-            $table->string('interval');
+            $table->string('timeline');
             $table->integer('count');
-            $table->integer('discount');
             $table->timestamps();
         });
     }

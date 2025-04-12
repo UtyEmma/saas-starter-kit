@@ -11,11 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payment_gateways', function (Blueprint $table) {
+        Schema::create('features', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('shortcode')->unique();
-            $table->string('config');
+            $table->string('description')->nullable();
+            $table->string('can_reset');
+            $table->string('reset_period')->nullable();
+            $table->string('reset_interval')->nullable();
+            $table->string('limit')->nullable();
+            $table->string('unit')->nullable();
             $table->string('status');
             $table->timestamps();
         });
@@ -26,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payment_gateways');
+        Schema::dropIfExists('features');
     }
 };

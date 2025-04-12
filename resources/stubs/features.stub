@@ -1,0 +1,21 @@
+<?php
+
+namespace {{namespace}};
+
+use App\Abstracts\BaseFeature;
+use App\Enums\Features;
+use App\Models\Features\Feature;
+
+class {{class}} extends BaseFeature {
+
+    protected $feature = '{{feature}}';
+
+    function resolve(Feature $feature){
+
+    }
+
+    function recordUsage(Feature $feature){
+
+    }   
+
+}

@@ -1,17 +1,16 @@
 <?php
 
-namespace Utyemma\Chargepro\Models\Plans;
+namespace App\Models\Plans;
 
 use App\Models\Country;
 use Illuminate\Database\Eloquent\Model;
 
 class PlanCountryPrice extends Model {
     
-    protected $fillable = ['country_id', 'price_id', 'price'];
+    protected $fillable = ['country_id', 'price_id', 'provider_id', 'price'];
 
     function scopeIsCurrent($query){
-        $country = locale()->country();
-        return $query->whereCountryId($country->id);
+        if($country = locale()->country()) $query->whereCountryId($country?->id);
     }
     
     function country(){

@@ -2,9 +2,13 @@
 
 namespace App\Filament\Resources\Payments;
 
+use App\Enums\PaymentGateways;
 use App\Filament\Resources\Payments\PaymentGatewayResource\Pages;
+use App\Forms\Components\SelectStatus;
 use App\Models\PaymentGateway;
 use Filament\Forms;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -27,15 +31,15 @@ class PaymentGatewayResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('shortcode')
+                Select::make('shortcode')
                     ->required()
-                    ->maxLength(255),
-                Forms\Components\Textarea::make('config')
-                    ->required()
+                    ->unique(ignoreRecord: true)
+                    ->options(PaymentGateways::options()),
+                KeyValue::make('config')
+                    ->default([])
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('status')
-                    ->required()
-                    ->maxLength(255),
+                SelectStatus::make('status')
+                    ->required(),
             ]);
     }
 
