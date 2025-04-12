@@ -50,4 +50,18 @@ class User extends Authenticatable
             'role' => Roles::class
         ];
     }
+
+    protected $appends = ['plan'];
+
+    function subscriptions(){
+        return $this->hasMany(Subscription::class, 'user_id');
+    }
+
+    function subscription(){
+        return $this->hasOne(Subscription::class, 'user_id')->isActive();
+    }
+
+    function getPlanAttribute(){
+        return $this->subscription?->plan;
+    }
 }

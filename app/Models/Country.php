@@ -45,7 +45,8 @@ class Country extends Model {
     }
 
     static function current() {
-        if($user = Auth::user()) return $user->country;
+        $user = Auth::user();
+        if($user && $user->country) return $user->country;
         
         if(session('country')) {
             if($country = self::isActive()->first(['id' => session('country')])) return $country;

@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 // use App\Services\SubscriptionService;
 
+use App\Models\Plans\PlanPrice;
 use App\Models\Transactions\Transaction;
 use App\Services\SubscriptionService;
 use App\Services\TransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Utyemma\Chargepro\Models\Plans\PlanPrice;
 
 class SubscriptionController extends Controller {
 
@@ -23,12 +23,14 @@ class SubscriptionController extends Controller {
 
         if(!$plan->trial_period) return back()->with('error', 'Trial is not available for this plan');
         $user = authenticated();
+
+        $planPrice->load(['plan', 'timeline']);
         
         $this->subscriptionService->withTrial($plan->trial_period)->create($user, $planPrice);
         return back()->with('success', '');
     }
 
-    function initiate(Request $request, PlanPrice $planPrice) {
+    function checkout(Request $request, PlanPrice $planPrice) {
         $user = authenticated();
         $subscription  = $this->subscriptionService->create($user, $planPrice);
         [$status, $message, $data] = $this->subscriptionService->initiate($subscription);

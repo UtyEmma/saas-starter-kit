@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Settings\BillingController;
+use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -13,3 +15,13 @@ Route::get('dashboard', function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+
+Route::prefix('billing')->group(function(){
+    Route::get('', [BillingController::class, 'index'])->name('billing');
+
+    Route::prefix('{planPrice}')->group(function(){
+        Route::get('checkout', [SubscriptionController::class, 'checkout'])->name('billing.checkout');
+        Route::get('trial', [SubscriptionController::class, 'startTrial'])->name('billing.trial');
+
+    });
+});

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Concerns\Models\HasStatus;
 use App\Enums\PaymentGateways;
 use App\Enums\SubscriptionStatus;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,11 +14,11 @@ use App\Services\TransactionService;
 
 class Subscription extends Model {
     
-    protected $fillable = ['user_id', 'plan_id', 'plan_price_id', 'expires_at', 'starts_at', 'trial_ends_at', 'provider', 'reference', 'auto_renews', 'meta', 'status'];
+    protected $fillable = ['user_id', 'plan_id', 'plan_price_id', 'expires_at', 'starts_at', 'trial_ends_at', 'gateway', 'reference', 'auto_renews', 'meta', 'status'];
 
     protected $casts = [
         'status' => SubscriptionStatus::class,
-        'provider' => PaymentGateways::class,
+        'gateway' => PaymentGateways::class,
         'meta' => 'array',
         'expires_at' => 'datetime',
         'starts_at' => 'datetime',
@@ -25,8 +26,15 @@ class Subscription extends Model {
     ];  
 
     public static function booted(){
+        self::creating(function($subscription){
+            $country = locale()->country();
+            $subscription->gateway = $country->gateway;
+        });
+
         self::created(function($subscription) {
-            (new TransactionService($subscription->user))->create($subscription, $subscription->planPrice->price);
+            if($subscription->status == SubscriptionStatus::PENDING) {
+                (new TransactionService($subscription->user))->create($subscription, $subscription->planPrice->price);
+            }
         });
     }
 
@@ -47,7 +55,8 @@ class Subscription extends Model {
     }
 
     function scopeIsActive(Builder $query){
-        $query->whereStatus(SubscriptionStatus::ACTIVE)->whereAfterToday('expires_at');
+        $query->whereStatus(SubscriptionStatus::ACTIVE)->orWhere('status', SubscriptionStatus::TRIAL)
+                    ->whereAfterToday('expires_at');
     }
 
     function scopeHasExpired(Builder $builder) {
@@ -67,7 +76,7 @@ class Subscription extends Model {
     }
 
     function getProviderAttribute(){
-        return $this->provider->provider();
+        return $this->provider?->provider();
     }
 
     function getDaysUsedAttribute(){

@@ -8,4 +8,7 @@ enum SubscriptionStatus {
     case CANCELLED;
     case EXPIRED;
 
+    case TRIAL;
+    case PENDING;
+
 }

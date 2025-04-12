@@ -19,6 +19,10 @@ class Plan extends Model {
         'is_free' => 'boolean',
     ];
 
+    function scopeIsPaid($query) {
+        $query->where('is_free', false);
+    }
+
     function features(){
         return $this->belongsToMany(Feature::class, 'plan_features')
             ->withPivot(['limit', 'reset_period', 'reset_interval']);

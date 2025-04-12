@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
-use App\Enums\Transactions;
+use App\Enums\SubscriptionStatus;
 use App\Models\Plans\Plan;
+use App\Models\Plans\PlanPrice;
+use App\Models\Plans\Timeline;
 use App\Models\Subscription;
 use App\Models\Transactions\Transaction;
 use App\Models\User;
@@ -11,7 +13,6 @@ use App\Support\Locale;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
-use Utyemma\Chargepro\Models\Plans\PlanPrice;
 
 class SubscriptionService {
 
@@ -58,13 +59,11 @@ class SubscriptionService {
 
     function create($user, PlanPrice $planPrice, array $data = []) {
         $plan = $planPrice->plan;
-
-        $trial_ends_at = $this->trial ? now()->addDays($this->trial) : null;
-
+        $trial_ends_at = $this->trial ? now()->addDays((int) $this->trial) : null;
         $starts_at = $trial_ends ?? now();
-        $ends_at = Date::parse($starts_at)->addDays($planPrice->timeline->days());
 
-        $grace_ends_at = $plan->grace_period ? Date::parse($ends_at)->addDays($plan->grace_period) : null;
+        $ends_at = Date::parse($starts_at)->add($planPrice->timeline->shortcode, (int) $planPrice->timeline->count);
+        $grace_ends_at = $plan->grace_period ? Date::parse($ends_at)->addDays((int) $plan->grace_period) : null;
 
         return $user->subscriptions()->create([
             'plan_id' => $planPrice->plan_id,
@@ -73,7 +72,8 @@ class SubscriptionService {
             'starts_at' => $starts_at,
             'auto_renews' => true,
             'trial_ends_at' => $trial_ends_at,
-            'grace_ends_at' => $grace_ends_at
+            'grace_ends_at' => $grace_ends_at,
+            'status' => $this->trial ? SubscriptionStatus::TRIAL : SubscriptionStatus::PENDING
         ]);
     }
     
@@ -103,6 +103,10 @@ class SubscriptionService {
         }
 
         $subscription->provider->upgrade($subscription, $plan);
+    }
+
+    function pricing(){
+        return Timeline::has('prices')->with(['plans.features'])->get();
     }
 
 
