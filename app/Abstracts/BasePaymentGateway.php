@@ -20,9 +20,17 @@ abstract class BasePaymentGateway implements PaymentGateway {
     protected $client = null;
     private static $instance;
 
+    function __construct(){
+        $this->connect();
+    }
+
+    function callbackUrl(array $params = []): string {
+        return route('transaction.verify', $params);
+    }
+
     static function instance(){
         if(!static::$instance) {
-            static::$instance = new static;
+            static::$instance = new static();
         }
         
         static::$instance->checkCheckoutChannels();
@@ -39,7 +47,7 @@ abstract class BasePaymentGateway implements PaymentGateway {
             throw new \Exception("Class ".static::class." must implement one of the ".RedirectPayment::class." interface or ".InlinePayment::class."  interface");
         }
         
-        if(!static::$instance->hasInline() || !static::$instance->hasRedirect()) {
+        if(!static::$instance->hasInline() && !static::$instance->hasRedirect()) {
             throw new \Exception("Class ".static::class." must implement one of the ".RedirectPayment::class." interface or ".InlinePayment::class."  interface");
         }
     }
@@ -80,13 +88,16 @@ abstract class BasePaymentGateway implements PaymentGateway {
         $response = $this->startSubscription($transaction);
         return $this->onResponse(
             httpResponse: $response, 
-            onFailed: fn($response) => $transaction->delete(),
+            onFailed: function($response) use($transaction) {
+                $transaction->saveHistory($response->context());
+                $transaction->delete();
+            },
             onSuccess: function($response) use($transaction){
-                $transaction->response = $response->context();
-                $transaction->save();
+                $transaction->saveHistory($response->context());
             },
             context: function($response) {
                 return [
+                    'url' => $this->hasRedirect() ? $response->message() : '',
                     'context' => $response->context(),
                     'redirect' => $this->hasRedirect()
                 ];
@@ -112,11 +123,11 @@ abstract class BasePaymentGateway implements PaymentGateway {
         return $this->onResponse(
             httpResponse: $response, 
             onFailed: function($response) use($transaction) {
-                $transaction->saveHistory($response);
+                $transaction->saveHistory($response->context());
                 $transaction->delete();
             },
             onSuccess: function($response) use($transaction){
-                $transaction->saveHistory($response);
+                $transaction->saveHistory($response->context());
             },
             context: function($response) use($transaction) {
                 return [

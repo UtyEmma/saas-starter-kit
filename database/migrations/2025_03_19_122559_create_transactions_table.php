@@ -19,8 +19,10 @@ return new class extends Migration
             $table->string('reference');
             $table->double('amount');
             $table->morphs('transactable');
-            $table->string('type');
             $table->string('currency_code');
+            $table->string('country_code');
+            $table->string('gateway');
+            $table->json('payload');
             $table->string('status');
             $table->softDeletes();
             $table->timestamps();

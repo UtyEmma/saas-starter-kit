@@ -14,7 +14,9 @@ class PlanPrice extends Model {
 
     protected $with = ['prices'];
 
-    protected function amount(){
+    protected $append = ['price'];
+
+    protected function amount(): Attribute {
         return Attribute::make(
             get: function($value) {
                 if($this->prices->count() && $price = $this->prices()->isCurrent()->first()) return $price->price;
@@ -43,6 +45,11 @@ class PlanPrice extends Model {
     function prices(){
         return $this->hasMany(PlanCountryPrice::class, 'price_id');
     }
+
+    // function getPriceAttribute(){
+    //     if($this->prices->count() && $price = $this->prices()->isCurrent()->first()) return $price->price;
+    //     return $this->amount;
+    // }
 
 
 }

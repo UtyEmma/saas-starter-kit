@@ -19,7 +19,7 @@ enum Roles:string {
     function label(){
         return match ($this) {
             static::ADMIN => 'Administrator',
-            static::SUPER_ADMIN => 'Super Administrator',
+            static::SUPER_ADMIN => 'Super Admin',
             static::USER => 'User'
         };
     }

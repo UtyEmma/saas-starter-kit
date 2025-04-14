@@ -26,12 +26,19 @@ class TransactionService {
         return $reference;
     }
 
-    function create(Model $transactable, float | int $amount){
+    function create(Model $transactable, float | int $amount, array $payload = []){
+        $payloadData = [];
+        
+        if($user = authenticated()) {
+            $payloadData['email'] = $user->email;
+        }
+
         return $transactable->transaction()->create([
             'reference' => $this->reference(), 
-            'payment_gateway' => $transactable->provider,
+            'gateway' => $transactable->gateway,
             'amount' => $amount,
-            'user_id' => $transactable->user_id
+            'user_id' => $transactable->user_id,
+            'payload' => [...$payloadData, ...$payload]
         ]);
     }
 

@@ -11,6 +11,7 @@ class TransactionHistory extends Model {
 
     protected $casts = [
         'status' => PaymentStatus::class,
+        'meta' => 'array'
     ];
 
     function transaction(){

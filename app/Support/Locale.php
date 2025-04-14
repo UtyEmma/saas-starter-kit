@@ -26,4 +26,8 @@ class Locale extends Support {
         return $this->country()->currency;
     }
 
+    function gateway(){
+        return $this->country()->gateway;
+    }
+
 }

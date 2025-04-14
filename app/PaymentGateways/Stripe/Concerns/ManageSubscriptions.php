@@ -11,27 +11,29 @@ use Stripe\Subscription as StripeSubscription;
 
 trait ManageSubscriptions {
 
-    function callbackUrl(array $params = []): string {
-        return route('profile.edit', $params);
-    }
-
     function startSubscription(Transaction $transaction): HttpResponse {
+        $subscription = $transaction->transactable;
         try {
             $checkout = $this->client->checkout->sessions->create([
-                'success_url' => $this->callbackUrl([]),
+                'success_url' => $this->callbackUrl([
+                    'transaction' => $transaction->id
+                ]),
+                'line_items' => [[
+                    'price' => $subscription->planPrice->provider_id,
+                    'quantity' => 1,
+                ]],
                 'mode' => 'subscription',
                 'client_reference_id' => $transaction->reference,
                 'customer_email' => $transaction->payload['email'],
                 'currency' => strtolower($transaction->currency_code)
             ]);
 
-            $transaction->provider_reference = $checkout->id;
+            $transaction->provider_id = $checkout->id;
             $transaction->save();
 
-            return $this->response(RequestStatus::OK, $checkout, [
-                'url' => $checkout->url
-            ]);
+            return $this->response(RequestStatus::OK, $checkout, $checkout->url);
         } catch (\Throwable $th) {
+            throw $th;
             return $this->response(RequestStatus::ERROR, ['error' => $th->getMessage()]);
         }
     }
@@ -52,7 +54,7 @@ trait ManageSubscriptions {
 
     function getSubscription(Subscription $subscription) {
         try {
-            $response = StripeSubscription::retrieve($subscription->reference);
+            $response = StripeSubscription::retrieve($subscription->provider);
             return $this->response(RequestStatus::OK, $response);
         } catch (\Throwable $th) {
             return $this->response(RequestStatus::ERROR, [
@@ -66,7 +68,7 @@ trait ManageSubscriptions {
     }
 
     function getSubscriptionId($response): string {
-        return $response['subscription']['id'];
+        return $response['subscription'];
     }
 
     function upgradeSubscription(Subscription $subscription, PlanPrice $planPrice): HttpResponse {

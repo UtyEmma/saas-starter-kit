@@ -12,20 +12,21 @@ use App\Models\Transactions\Transaction;
 use App\PaymentGateways\Stripe\Concerns\ManagePayment;
 use App\PaymentGateways\Stripe\Concerns\ManageSubscriptions;
 use App\Support\HttpResponse;
+use Exception;
 use Stripe\StripeClient;
 
 class StripeGateway extends BasePaymentGateway implements RedirectPayment, HandlesSubscription, HandlesCheckout {
     use ManageSubscriptions, ManagePayment;
 
-    protected StripeClient $stripeClient;
-
     function client(): StripeClient {
-        return new StripeClient('');
+        return new StripeClient(env('STRIPE_SECRET'));
     }
 
     function verify(Transaction $transaction): HttpResponse {
         try {
-            $session = $this->stripeClient->checkout->sessions->retrieve($transaction->provider_reference);
+            $session = $this->client->checkout->sessions->retrieve($transaction->provider_id);
+
+            if(!isset($session->payment_status)) throw new Exception($session->message ?? 'Invalid Payment verification Response from payment provider');
 
             $state = match ($session->payment_status) {
                 'paid' => PaymentStatus::SUCCESS,

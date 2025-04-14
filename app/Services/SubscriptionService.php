@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\PaymentStatus;
 use App\Enums\SubscriptionStatus;
 use App\Models\Plans\Plan;
 use App\Models\Plans\PlanPrice;
@@ -30,21 +31,21 @@ class SubscriptionService {
 
     function initiate(Subscription $subscription){
         $transaction = $this->transactionService->create($subscription, $subscription->planPrice->amount);
-
-        $paymentProvider = $transaction->paymentGateway->provider();
+        $paymentProvider = $transaction->provider();
         return $paymentProvider->subscribe($transaction);        
     }
 
     function subscribe(Transaction $transaction) {
-        $user = $transaction->user;
+        $subscription = $transaction->transactable;
+
         [$status, $message, $transaction] = $this->transactionService->verify($transaction);
 
         if(!$status) return state(false, $message);
-        if(!$planPrice = PlanPrice::with('plan')->firstWhere(['id' => $transaction->payload['plan_price']])){
-            return state(false, 'The selected plan does not exist');
-        }
 
-        $subscription = $this->create($user, $planPrice);
+        if($transaction->status == PaymentStatus::SUCCESS) {
+            $subscription->status = SubscriptionStatus::ACTIVE;
+            $subscription->save();
+        }
 
         return state(true, '', $subscription);
     }
@@ -62,7 +63,7 @@ class SubscriptionService {
         $trial_ends_at = $this->trial ? now()->addDays((int) $this->trial) : null;
         $starts_at = $trial_ends ?? now();
 
-        $ends_at = Date::parse($starts_at)->add($planPrice->timeline->shortcode, (int) $planPrice->timeline->count);
+        $ends_at = Date::parse($starts_at)->add($planPrice->timeline->timeline->value, (int) $planPrice->timeline->count);
         $grace_ends_at = $plan->grace_period ? Date::parse($ends_at)->addDays((int) $plan->grace_period) : null;
 
         return $user->subscriptions()->create([
@@ -106,7 +107,17 @@ class SubscriptionService {
     }
 
     function pricing(){
-        return Timeline::has('prices')->with(['plans.features'])->get();
+        $timeline = Timeline::has('prices')->with(['plans.features', 'plans.prices'])->get();
+        // Manually load the plan prices to append the country based price and provider_id accessors    
+        return $timeline->map(function($timeline){
+            $timeline->plans = $timeline->plans->map(function ($plan) {
+                $price = $plan->prices()->find($plan->price->id);
+                $plan->price->amount = $price->amount;
+                $plan->price->provider_id = $price->provider_id;
+                return $plan;
+            });
+            return $timeline;
+        });
     }
 
 

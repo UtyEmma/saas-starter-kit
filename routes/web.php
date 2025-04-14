@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Billing\TransactionController;
 use App\Http\Controllers\Settings\BillingController;
 use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
@@ -19,9 +20,14 @@ require __DIR__.'/auth.php';
 Route::prefix('billing')->group(function(){
     Route::get('', [BillingController::class, 'index'])->name('billing');
 
+    Route::prefix('transactions')->group(function(){
+        Route::prefix('{transaction}')->group(function(){
+            Route::get('verify', [TransactionController::class, 'verify'])->name('transaction.verify');
+        });
+    });
+
     Route::prefix('{planPrice}')->group(function(){
         Route::get('checkout', [SubscriptionController::class, 'checkout'])->name('billing.checkout');
         Route::get('trial', [SubscriptionController::class, 'startTrial'])->name('billing.trial');
-
     });
 });

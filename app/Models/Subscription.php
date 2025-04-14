@@ -33,7 +33,7 @@ class Subscription extends Model {
 
         self::created(function($subscription) {
             if($subscription->status == SubscriptionStatus::PENDING) {
-                (new TransactionService($subscription->user))->create($subscription, $subscription->planPrice->price);
+                (new TransactionService($subscription->user))->create($subscription, $subscription->planPrice->amount);
             }
         });
     }
@@ -76,7 +76,7 @@ class Subscription extends Model {
     }
 
     function getProviderAttribute(){
-        return $this->provider?->provider();
+        return $this->gateway?->provider();
     }
 
     function getDaysUsedAttribute(){
