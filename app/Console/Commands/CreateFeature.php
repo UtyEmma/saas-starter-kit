@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Features\Feature;
+
 use Illuminate\Console\Command;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
@@ -26,7 +27,7 @@ class CreateFeature extends GeneratorCommand implements PromptsForMissingInput
     }
 
     protected function buildClass($name) {
-        $options = $this->createFeature();
+        $options = $this->createFeature($this->argument('name'), $name);
         return str_replace(['{{feature}}'], [$options['feature']], parent::buildClass($name));
     }
 
@@ -42,9 +43,10 @@ class CreateFeature extends GeneratorCommand implements PromptsForMissingInput
         ];
     }
 
-    function createFeature(){
-        $name = str($this->argument('name'))->remove('Feature');
+    function createFeature(string $name, string $class_name){
+        $name = str($name)->beforeLast('Feature');
 
+        $namespace = implode('\\', [app()->getNamespace(), $this->type, $name]);
         $title = $this->option('title') ?? $name->headline();
         $feature = $this->option('feature') ?? $name->snake();
 
@@ -57,6 +59,7 @@ class CreateFeature extends GeneratorCommand implements PromptsForMissingInput
         Feature::create([
             'name' => $title,
             'shortcode' => $feature,
+            'feature_class' => $class_name,
             'description' => $this->option('description')
         ]);
 

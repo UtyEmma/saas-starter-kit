@@ -25,7 +25,9 @@ class Plan extends Model {
 
     function features(){
         return $this->belongsToMany(Feature::class, 'plan_features')
-            ->withPivot(['limit', 'reset_period', 'reset_interval']);
+            ->withPivot(['id', 'limit', 'reset_period', 'reset_interval'])
+            ->as('feature')
+            ->withTimestamps();
     }
 
     function planFeatures(){

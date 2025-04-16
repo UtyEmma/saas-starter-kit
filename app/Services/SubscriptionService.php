@@ -45,6 +45,9 @@ class SubscriptionService {
         if($transaction->status == PaymentStatus::SUCCESS) {
             $subscription->status = SubscriptionStatus::ACTIVE;
             $subscription->save();
+
+            $subscription->user->plan_id = $subscription->plan_id;
+            $subscription->user->save();
         }
 
         return state(true, '', $subscription);

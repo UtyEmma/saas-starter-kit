@@ -31,11 +31,6 @@ class FeatureResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Select::make('shortcode')
-                    ->required()
-                    ->native(false)
-                    ->disabled()
-                    ->options(Features::options()),
                 Forms\Components\Textarea::make('description')
                     ->columnSpanFull()
                     ->default(null),
@@ -60,6 +55,7 @@ class FeatureResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn($query) => $query->latest())
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
@@ -108,7 +104,7 @@ class FeatureResource extends Resource
     {
         return [
             'index' => Pages\ListFeatures::route('/'),
-            'create' => Pages\CreateFeature::route('/create'),
+            // 'create' => Pages\CreateFeature::route('/create'),
             'edit' => Pages\EditFeature::route('/{record}/edit'),
         ];
     }

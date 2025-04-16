@@ -2,18 +2,19 @@
 
 namespace App\Support;
 
-use App\Enums\PaymentStatus;
 use App\Enums\RequestStatus;
-use Illuminate\Http\Client\Response;
 
 class HttpResponse {
 
-
     function __construct(
-        private RequestStatus $status,
+        private RequestStatus | bool $status,
         private array|object $context = [],
         private mixed $message = ''
     ) { }
+
+    function __get($name){
+        if(isset($this->context[$name])) return $this->context[$name];
+    }
 
     function context(){
         return $this->context;
@@ -32,10 +33,12 @@ class HttpResponse {
     }
 
     function success(){
+        if(is_bool($this->status)) return $this->status;
         return $this->status == RequestStatus::OK;
     }
     
     function failed(){
+        if(is_bool($this->status)) return !$this->status;
         return in_array($this->status, [RequestStatus::ERROR]);
     }
 

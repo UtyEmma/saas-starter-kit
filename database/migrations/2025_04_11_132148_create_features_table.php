@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('shortcode')->unique();
+            $table->string('feature_class')->unique();
             $table->string('description')->nullable();
             $table->string('can_reset');
             $table->string('reset_period')->nullable();

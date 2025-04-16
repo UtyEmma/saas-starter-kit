@@ -6,6 +6,8 @@ namespace App\Models;
 
 use App\Concerns\Models\HasStatus;
 use App\Enums\Roles;
+use App\Models\Features\Feature;
+use App\Models\Plans\Plan;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -25,6 +27,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'plan_id'
     ];
 
     /**
@@ -61,7 +64,11 @@ class User extends Authenticatable
         return $this->hasOne(Subscription::class, 'user_id')->isActive();
     }
 
-    function getPlanAttribute(){
-        return $this->subscription?->plan;
+    function plan(){
+        return $this->belongsTo(Plan::class, 'plan_id');
+    }
+
+    function hasFeature(Feature $feature){
+        return $feature->check($this);
     }
 }
