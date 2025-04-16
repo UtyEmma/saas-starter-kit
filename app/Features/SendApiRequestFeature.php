@@ -10,16 +10,16 @@ use App\Models\User;
 
 class SendApiRequestFeature extends BaseFeature {
 
-    public static $key = 'send_api_request';
+    public const KEY = 'send_api_request';
 
-    function setMessages(Feature | null $feature, $data = []) {
+    protected function setMessages(Feature | null $feature, $data = []) {
         $features = str('request')->plural($feature->threshold);
         return [
             static::LIMIT_EXCEEDED => "You have exceeded the api request limits on your current plan. You are limited to {$feature->threshold} {$features} {$this->getInterval($feature)}"
         ];
     }
 
-    function resolve(Feature $feature, User | null $user): mixed {
+    public function resolve(Feature $feature, User | null $user): mixed {
         $usage_count = $feature->usage()->whereBetween('created_at', [now(), $this->getResetPeriod($feature)] )->count();
         
         if($feature->limit > $usage_count) return state(true);

@@ -19,8 +19,8 @@ class BillingController extends Controller {
 
         $user = authenticated();
         
-        $response = Gate::inspect(SendApiRequestFeature::class);
-        if($response->denied()) dd($response->message());
+        // $user->hasFeature(SendApi)
+
 
         $pricing = $this->subscriptionService->pricing();
         return Inertia::render('settings/billing/Index', compact('pricing'));

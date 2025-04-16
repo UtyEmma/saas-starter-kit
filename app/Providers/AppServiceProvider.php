@@ -18,7 +18,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(function(User $user, string $ability){
             if($feature = Feature::where('feature_class', $ability)
                             ->orWhere('shortcode', $ability)->first()) {
-                $response = $user->hasFeature($feature);
+                $response = $feature->check($user);
     
                 if($response->failed()) {
                     return Response::deny($response->message());

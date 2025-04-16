@@ -11,6 +11,7 @@ use App\Models\Plans\Plan;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Gate;
 
 class User extends Authenticatable
 {
@@ -54,8 +55,6 @@ class User extends Authenticatable
         ];
     }
 
-    protected $appends = ['plan'];
-
     function subscriptions(){
         return $this->hasMany(Subscription::class, 'user_id');
     }
@@ -68,7 +67,9 @@ class User extends Authenticatable
         return $this->belongsTo(Plan::class, 'plan_id');
     }
 
-    function hasFeature(Feature $feature){
-        return $feature->check($this);
+    function hasFeature(string $class){
+        $response = Gate::inspect($class);
+        if($response->denied()) state(false, $response->message());
+        return state(true);
     }
 }

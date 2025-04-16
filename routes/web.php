@@ -1,5 +1,6 @@
 <?php
 
+use App\Features\SendApiRequestFeature;
 use App\Http\Controllers\Billing\TransactionController;
 use App\Http\Controllers\Settings\BillingController;
 use App\Http\Controllers\SubscriptionController;
@@ -18,7 +19,9 @@ require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 
 Route::prefix('billing')->group(function(){
-    Route::get('', [BillingController::class, 'index'])->name('billing');
+    Route::get('', [BillingController::class, 'index'])
+        ->name('billing')
+        ->can(SendApiRequestFeature::KEY);
 
     Route::prefix('transactions')->group(function(){
         Route::prefix('{transaction}')->group(function(){
