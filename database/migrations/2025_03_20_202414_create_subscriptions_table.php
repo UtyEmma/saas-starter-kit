@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('plan_price_id');
             $table->string('expires_at')->nullable();
             $table->string('starts_at')->nullable();
+            $table->string('grace_ends_at')->nullable();
             $table->string('trial_ends_at')->nullable();
             $table->string('provider');
             $table->string('reference')->nullable();

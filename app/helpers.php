@@ -20,7 +20,7 @@ if(!function_exists('authenticated')){
 
 if(!function_exists('locale')) {
     function locale(){
-        return Locale::new();
+        return new Locale;
     }
 }
 

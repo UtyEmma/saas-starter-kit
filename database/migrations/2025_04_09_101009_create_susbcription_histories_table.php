@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('susbcription_histories', function (Blueprint $table) {
             $table->id();
             $table->string('status');
+            $table->string('description')->nullable();
             $table->string('subscription_id');
             $table->json('meta');
             $table->timestamps();

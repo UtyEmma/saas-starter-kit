@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\PaymentStatus;
+use App\Enums\Subscriptions\SubscriptionActions;
 use App\Enums\SubscriptionStatus;
 use App\Models\Plans\Plan;
 use App\Models\Plans\PlanPrice;
@@ -12,6 +13,7 @@ use App\Models\Transactions\Transaction;
 use App\Models\User;
 use App\Support\Locale;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 
@@ -54,7 +56,6 @@ class SubscriptionService {
     }
 
     public $trial = null;
-    public $grace = null;
 
     function withTrial($interval){
         $this->trial = $interval;
@@ -93,6 +94,12 @@ class SubscriptionService {
     }
 
     function cancel(Subscription $subscription){
+        $subscription->status = SubscriptionStatus::EXPIRED;
+        $subscription->save();
+
+        $subscription->user->plan_id = null;
+        $subscription->user->save();
+
         return $subscription->provider->cancel();
     }
 
@@ -102,7 +109,7 @@ class SubscriptionService {
         }
 
         $currentPlanPrice = $subscription->planPrice;
-        if(!$newPlanPrice = $plan->pricies()->whereTimelineId($currentPlanPrice->timeline_id)->first()) {
+        if(!$plan->pricies()->whereTimelineId($currentPlanPrice->timeline_id)->first()) {
             return state(false, "You cannot upgrade to the {$plan->name} because it does not support your current subscripton timeline. Please select a different plan.");
         }
 
@@ -122,6 +129,63 @@ class SubscriptionService {
             return $timeline;
         });
     }
+
+    function expiredSubscriptions($date = null) {
+        return Subscription::hasExpired($date)->get();
+    }
+
+    public function handleExpiredSubscriptions(Subscription $subscription) {
+        if($subscription->status == SubscriptionStatus::EXPIRED) {
+            return state(true, 'Subscription is already expired');
+        }
+
+        if($subscription->auto_renews) {
+            [$status, $message, $data] = $subscription->provider->renew($subscription);
+
+            if($status) {
+                $subscription->saveHistory(SubscriptionActions::RENEWED, $data);
+                return state(true, 'Subscription renewed successfully');
+            }
+
+            $subscription->saveHistory(SubscriptionActions::RENEWAL_FAILED, $data);
+        }
+
+        if($subscription->grace_ends_at && $subscription->grace_ends_at->isFuture()) {
+            $subscription->status = SubscriptionStatus::GRACE;
+            $subscription->save();
+
+            notify("Your subscription has expired.")
+                ->line("We wanted to let you know that your subscription has expired, and your account is on grace period until {$subscription->grace_ends_at->format('jS F Y')}. To continue enjoying our platform, you'll need to create a new subscription.")
+                ->action('Manage Billing', route('billing'))
+                ->priority(1)
+                ->send($subscription->user, ['mail']);
+
+            $subscription->saveHistory(SubscriptionActions::GRACE_PERIOD);
+            return state(true, 'Subscription is in grace period');
+        }
+
+        $this->markSubscriptionAsExpired($subscription);
+
+        //Send Subscription expired notification
+        notify("Your subscription has expired")
+            ->line("We wanted to let you know that your subscription has fully expired, and access to our services has been revoked. To continue enjoying our platform, you'll need to create a new subscription.")
+            ->action('Manage Billing', route('billing'))
+            ->priority(1)
+            ->send($subscription->user, ['mail']);
+
+        return state(true, 'Subscription marked as expired');
+    }
+    
+    function markSubscriptionAsExpired(Subscription $subscription, $gracePeriod = false) {
+        $subscription->status = SubscriptionStatus::EXPIRED;
+        $subscription->save();
+
+        $subscription->user->plan_id = null;
+        $subscription->user->save();
+
+        $subscription->saveHistory(SubscriptionActions::EXPIRED);
+    }
+
 
 
 

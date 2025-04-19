@@ -7,8 +7,7 @@ use App\Services\SubscriptionService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class SendSubscriptionExpirationWarning implements ShouldQueue
-{
+class SendSubscriptionExpirationWarning implements ShouldQueue {
     use Queueable;
 
     /**

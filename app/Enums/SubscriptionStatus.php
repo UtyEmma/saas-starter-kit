@@ -10,6 +10,7 @@ enum SubscriptionStatus {
 
     case TRIAL;
     case PENDING;
+    case GRACE;
 
     function label(){
         return match($this) {
@@ -18,6 +19,7 @@ enum SubscriptionStatus {
             self::EXPIRED => 'EXPIRED',
             self::TRIAL => 'TRIAL',
             self::PENDING => 'PENDING',
+            self::GRACE => 'GRACE',
         };
     }
 
@@ -28,6 +30,7 @@ enum SubscriptionStatus {
             self::EXPIRED => 'danger',
             self::TRIAL => 'info',
             self::PENDING => 'warning',
+            self::GRACE => 'warning',
         };
     }
 
@@ -38,6 +41,7 @@ enum SubscriptionStatus {
             self::EXPIRED->value => self::EXPIRED->label(),
             self::TRIAL->value => self::TRIAL->label(),
             self::PENDING->value => self::PENDING->label(),
+            self::GRACE->value => self::GRACE->label(),
         ];
     }
 
