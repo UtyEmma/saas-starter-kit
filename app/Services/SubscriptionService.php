@@ -118,7 +118,6 @@ class SubscriptionService {
 
     function pricing(){
         $timeline = Timeline::has('prices')->with(['plans.features', 'plans.prices'])->get();
-        // Manually load the plan prices to append the country based price and provider_id accessors    
         return $timeline->map(function($timeline){
             $timeline->plans = $timeline->plans->map(function ($plan) {
                 $price = $plan->prices()->find($plan->price->id);

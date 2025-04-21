@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Features\SendApiRequestFeature;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Billing\SubscriptionResource;
 use App\Services\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -16,14 +17,11 @@ class BillingController extends Controller {
     }
     
     function index(){
-
-        $user = authenticated();
-        
-        // $user->hasFeature(SendApi)
-
+        $user = authenticated(['subscription.plan', 'subscription.price']);
 
         $pricing = $this->subscriptionService->pricing();
-        return Inertia::render('settings/billing/Index', compact('pricing'));
+        $subscription = new SubscriptionResource($user->subscription);
+        return Inertia::render('settings/billing/Index', compact('pricing', 'subscription'));
     }
 
 }

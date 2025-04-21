@@ -51,6 +51,10 @@ class Subscription extends Model {
         return $this->belongsTo(PlanPrice::class, 'plan_price_id');
     }
 
+    public function price() {
+        return $this->belongsTo(PlanPrice::class, 'plan_price_id');
+    }
+
     public function plan(){
         return $this->belongsTo(Plan::class, 'plan_id');
     }

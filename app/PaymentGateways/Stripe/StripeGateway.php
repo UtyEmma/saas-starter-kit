@@ -13,13 +13,13 @@ use App\PaymentGateways\Stripe\Concerns\ManagePayment;
 use App\PaymentGateways\Stripe\Concerns\ManageSubscriptions;
 use App\Support\HttpResponse;
 use Exception;
-use Stripe\StripeClient;
+use Stripe;
 
 class StripeGateway extends BasePaymentGateway implements RedirectPayment, HandlesSubscription, HandlesCheckout {
     use ManageSubscriptions, ManagePayment;
 
-    function client(): StripeClient {
-        return new StripeClient(env('STRIPE_SECRET'));
+    function client(): Stripe\StripeClient {
+        return new Stripe\StripeClient(env('STRIPE_SECRET'));
     }
 
     function verify(Transaction $transaction): HttpResponse {

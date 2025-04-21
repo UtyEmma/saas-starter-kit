@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Button from '@/components/ui/button/Button.vue';
+import Card from '@/components/ui/card/Card.vue';
 import Tooltip from '@/components/ui/tooltip/Tooltip.vue';
 import TooltipContent from '@/components/ui/tooltip/TooltipContent.vue';
-import TooltipProvider from '@/components/ui/tooltip/TooltipProvider.vue';
 import TooltipTrigger from '@/components/ui/tooltip/TooltipTrigger.vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { CheckIcon, InfoIcon } from 'lucide-vue-next';
@@ -17,12 +17,10 @@ const props = defineProps({
 
 const {auth} = usePage().props as any
 
-console.log(auth);
-
 </script>
 
 <template>
-    <div class="flex flex-col border-2 text-center shadow-xl rounded-xl p-8 " :class="{'dark:border-blue-700 border-blue-600': plan.is_popular}" >
+    <Card class="flex flex-col text-center p-8" :class="{'dark:border-blue-700 border-blue-600': plan.is_popular}" >
         <p class="mb-3" v-if="plan.is_popular" >
             <span class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg text-xs uppercase font-semibold bg-blue-100 text-blue-800 dark:bg-blue-600 dark:text-white">Most popular</span>
         </p>
@@ -35,16 +33,16 @@ console.log(auth);
 
         <div class="mt-7 space-y-7">
             <ul class="space-y-2.5 text-sm">
-                <li v-for="feature in plan.features" class="flex items-center gap-x-2">
+                <li v-for="feature in plan.features" :key="feature.id" class="flex items-center gap-x-2">
                     <CheckIcon class="text-blue-600 dark:text-blue-500 size-5" />
                     <span class="text-gray-800 dark:text-neutral-400">{{feature.name}}</span>
-    
-                    <Tooltip>
+
+                    <Tooltip v-if="feature.description">
                         <TooltipTrigger as-child>
                             <InfoIcon class="size-3 cursor-pointer" />
                         </TooltipTrigger>
-                        <TooltipContent>
-                            <p>{{feature.description}}</p>
+                        <TooltipContent class="max-w-60">
+                            <p class="text-sm font-light ">{{feature.description}}</p>
                         </TooltipContent>
                     </Tooltip>
                 </li>
@@ -63,5 +61,5 @@ console.log(auth);
                 Select Plan
             </Button>
         </div>
-    </div>
+    </Card>
 </template>

@@ -11,6 +11,8 @@ enum SubscriptionActions {
     case EXPIRED;
     case CANCELLED;
 
+    case STATUS_CHECKED;
+
     public function label(){
         return match($this) {
             self::RENEWED => 'Renewed',
@@ -20,6 +22,7 @@ enum SubscriptionActions {
             self::TRIAL_ENDED => 'Trial Ended',
             self::EXPIRED => 'Expired',
             self::CANCELLED => 'Cancelled',
+            self::STATUS_CHECKED => 'Status Checked',
         };
     }
 

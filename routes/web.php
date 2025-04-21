@@ -20,8 +20,7 @@ require __DIR__.'/auth.php';
 
 Route::prefix('billing')->group(function(){
     Route::get('', [BillingController::class, 'index'])
-        ->name('billing')
-        ->can(SendApiRequestFeature::KEY);
+        ->name('billing');
 
     Route::prefix('transactions')->group(function(){
         Route::prefix('{transaction}')->group(function(){

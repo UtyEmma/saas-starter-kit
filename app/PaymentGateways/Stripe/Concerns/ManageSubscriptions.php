@@ -7,8 +7,6 @@ use App\Models\Plans\PlanPrice;
 use App\Models\Subscription;
 use App\Models\Transactions\Transaction;
 use App\Support\HttpResponse;
-use Stripe\Subscription as StripeSubscription;
-
 trait ManageSubscriptions {
 
     function startSubscription(Transaction $transaction): HttpResponse {
@@ -33,7 +31,6 @@ trait ManageSubscriptions {
 
             return $this->response(RequestStatus::OK, $checkout, $checkout->url);
         } catch (\Throwable $th) {
-            throw $th;
             return $this->response(RequestStatus::ERROR, ['error' => $th->getMessage()]);
         }
     }
@@ -54,7 +51,7 @@ trait ManageSubscriptions {
 
     function getSubscription(Subscription $subscription) {
         try {
-            $response = StripeSubscription::retrieve($subscription->provider);
+            $response = $this->client->retrieve($subscription->provider);
             return $this->response(RequestStatus::OK, $response);
         } catch (\Throwable $th) {
             return $this->response(RequestStatus::ERROR, [
@@ -64,6 +61,7 @@ trait ManageSubscriptions {
     }
 
     function getSubscriptionStatus(Subscription $subscription): HttpResponse {
+        $response = $this->getSubscription($subscription);
         return $this->response(RequestStatus::OK);
     }
 
@@ -79,7 +77,7 @@ trait ManageSubscriptions {
         try {
             $subscriptionInfo = $stripeSubscription->context();
 
-            $response = StripeSubscription::update($subscription->reference, [
+            $response = $this->client->update($subscription->reference, [
                 'items' => [
                   [
                     'id' => $subscriptionInfo->items->data[0]->id,
@@ -88,6 +86,20 @@ trait ManageSubscriptions {
                 ],
                 'proration_date' => now()
               ]);
+
+            return $this->response(RequestStatus::OK, $response);
+        } catch (\Throwable $th) {
+            return $this->response(RequestStatus::ERROR, [], $th->getMessage());
+        }
+    }
+
+    function renew(Subscription $subscription) {
+        $stripeSubscription = $this->getSubscription($subscription);
+        if(!$stripeSubscription->success()) return $stripeSubscription;
+
+        try {
+            $subscriptionInfo = $stripeSubscription->context();
+            $response = $this->client->invoice->pay($subscriptionInfo['next_invoice_id']);
 
             return $this->response(RequestStatus::OK, $response);
         } catch (\Throwable $th) {

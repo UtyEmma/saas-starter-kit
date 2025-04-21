@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use phpDocumentor\Reflection\Types\Nullable;
 use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
@@ -35,21 +36,48 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
-    public function share(Request $request): array
-    {
+    public function share(Request $request): array {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
-
+        $country = locale()->country();
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
+            'toast' => $this->toast(),
             'auth' => [
-                'user' => $request->user(),
+                'user' => authenticated(['plan', 'subscription']),
+            ],
+            'locale' => [
+                'country' => $country,
+                'currency' => $country->currency
             ],
             'ziggy' => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
         ];
+    }
+
+    function toast(){
+        $request = request();
+        if(!$toast = $request->session()->get('toast')) {
+            if($request->session()->has('success')) {
+                return toast($request->session()->get('success'), $request->session()->get('title', null))->success();
+            }
+
+            if($request->session()->has('error')) {
+                return toast($request->session()->get('error'), $request->session()->get('title', null))->error();
+            }
+
+            if($request->session()->has('info')) {
+                return toast($request->session()->get('info'), $request->session()->get('title', null))->info();
+            }
+
+            if($request->session()->has('warning')) {
+                return toast($request->session()->get('warning'), $request->session()->get('title', null))->warning();
+            }
+        }
+
+        return $toast;
     }
 }

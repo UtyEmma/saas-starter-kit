@@ -4,6 +4,7 @@ use App\Models\User;
 use App\Support\Authenticated;
 use App\Support\Locale;
 use App\Support\State;
+use App\Support\Toast;
 
 if(!function_exists('state')) {
     function state(mixed $status, mixed $message = '', $data = []){
@@ -24,3 +25,9 @@ if(!function_exists('locale')) {
     }
 }
 
+
+if(!function_exists('toast')) {
+    function toast($message, $title = null){
+        return new Toast($message, $title);
+    }
+}

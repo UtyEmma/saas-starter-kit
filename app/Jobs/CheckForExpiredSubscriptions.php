@@ -25,7 +25,7 @@ class CheckForExpiredSubscriptions implements ShouldQueue
      * Execute the job.
      */
     public function handle(SubscriptionService $susbcriptionService): void {
-        $expiredSubscriptions = $susbcriptionService->expiredSubscriptions(today());
+        $expiredSubscriptions = $susbcriptionService->expiredSubscriptions(today()->subDay());
 
         $expiredSubscriptions->each(function($subscription) use($susbcriptionService) {
             try {
