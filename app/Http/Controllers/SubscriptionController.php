@@ -61,4 +61,38 @@ class SubscriptionController extends Controller {
         if(!$status) return back()->with('error', $message);
         return back()->with('success', $message);
     }
+
+    function cancel(Request $request) {
+        $user = authenticated();
+
+        try {
+            DB::beginTransaction();
+
+            [$status, $message, $data]  = $this->subscriptionService->cancel($user->subscription);
+            if(!$status) return back()->with('error', $message);
+            DB::commit();
+            return back()->with('success', "Your Subscription has been cancelled successfully!");
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
+    }
+
+    function upgrade(Request $request, PlanPrice $planPrice) {
+        try {
+            DB::beginTransaction();
+            $user = authenticated();
+
+            [$status, $message, $data]  = $this->subscriptionService->upgrade($user->subscription, $planPrice);
+
+            if(!$status) return back()->with('error', $message);
+            DB::commit();
+
+            if($data['redirect']) return inertia()->location($data['url']);
+            return back()->with('success', $data);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            throw $th;
+        }
+    }
 }

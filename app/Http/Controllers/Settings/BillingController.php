@@ -21,7 +21,8 @@ class BillingController extends Controller {
 
         $pricing = $this->subscriptionService->pricing();
         $subscription = new SubscriptionResource($user->subscription);
-        return Inertia::render('settings/billing/Index', compact('pricing', 'subscription'));
+        $subscriptions = SubscriptionResource::collection($user->subscriptions()->with('transaction', 'plan')->with('plan')->latest()->get());
+        return Inertia::render('settings/billing/Index', compact('pricing', 'subscription', 'subscriptions'));
     }
 
 }

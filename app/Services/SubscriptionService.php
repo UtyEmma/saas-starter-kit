@@ -94,39 +94,42 @@ class SubscriptionService {
     }
 
     function cancel(Subscription $subscription){
-        $subscription->status = SubscriptionStatus::EXPIRED;
-        $subscription->save();
+        $response = $subscription->provider->cancelSubscription($subscription);
 
-        $subscription->user->plan_id = null;
-        $subscription->user->save();
+        if(!$response->success()) return state(false, $response->message()); 
+        
+        
 
-        return $subscription->provider->cancel();
+        return state(true, $response->message());
     }
 
-    function upgrade(Subscription $subscription, Plan $plan) {
-        if($subscription->plan->is($plan)) {
-            return state(false, "You are already on the {$plan->name} plan! You may upgrade to a different plan");
+    function upgrade(Subscription $subscription, PlanPrice $planPrice) {
+        if($subscription->planPrice->is($planPrice)) {
+            return state(false, "You are already on the {$planPrice->plan->name} plan! You may upgrade to a different plan");
         }
 
-        $currentPlanPrice = $subscription->planPrice;
-        if(!$plan->pricies()->whereTimelineId($currentPlanPrice->timeline_id)->first()) {
-            return state(false, "You cannot upgrade to the {$plan->name} because it does not support your current subscripton timeline. Please select a different plan.");
+        if(!$plan = $planPrice->plan) {
+            return state(false, "The selected plan does not exist");
         }
 
-        $subscription->provider->upgrade($subscription, $plan);
+        $subscription->provider->upgrade($subscription, $planPrice);
     }
 
     function pricing(){
-        $timeline = Timeline::has('prices')->with(['plans.features', 'plans.prices'])->get();
-        return $timeline->map(function($timeline){
-            $timeline->plans = $timeline->plans->map(function ($plan) {
+        $timeline = Timeline::has('prices')->get();
+
+        $timelines = $timeline->map(function($timeline){
+            $timeline->plans = $timeline->plans()->with(['features', 'prices'])->orderBy('sort')->get()->map(function ($plan) {
                 $price = $plan->prices()->find($plan->price->id);
                 $plan->price->amount = $price->amount;
                 $plan->price->provider_id = $price->provider_id;
                 return $plan;
             });
+
             return $timeline;
         });
+
+        return $timelines;
     }
 
     function expiredSubscriptions($date = null) {

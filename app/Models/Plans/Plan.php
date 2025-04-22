@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Plan extends Model {
     use SoftDeletes, HasStatus;
     
-    protected $fillable = ['name', 'description', 'is_popular', 'trial_period', 'grace_period', 'is_default', 'is_free'];
+    protected $fillable = ['name', 'description', 'is_popular', 'trial_period', 'sort', 'grace_period', 'is_default', 'is_free'];
 
     protected $casts = [
         'is_popular' => 'boolean',

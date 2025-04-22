@@ -22,6 +22,7 @@ class SubscriptionResource extends JsonResource
             'price' => new PricingResource($this->whenLoaded('price')),
             'transaction' => new TransactionResource($this->whenLoaded('transaction')),
             'start_date' => $this->starts_at->format('jS M, Y'),
+            'reference' => $this->reference,
             'end_date' => $this->expires_at->format('jS M, Y'),
             'auto_renews' => $this->auto_renews,
             'status' => $this->status->name,

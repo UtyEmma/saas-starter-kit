@@ -39,11 +39,13 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
         $country = locale()->country();
+        $toast = $this->toast();
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
-            'toast' => $this->toast(),
+            'toast' => $toast,
             'auth' => [
                 'user' => authenticated(['plan', 'subscription']),
             ],
@@ -62,19 +64,19 @@ class HandleInertiaRequests extends Middleware
         $request = request();
         if(!$toast = $request->session()->get('toast')) {
             if($request->session()->has('success')) {
-                return toast($request->session()->get('success'), $request->session()->get('title', null))->success();
+                return toast($request->session()->get('success'), $request->session()->get('title', null))->success()->get();
             }
 
             if($request->session()->has('error')) {
-                return toast($request->session()->get('error'), $request->session()->get('title', null))->error();
+                return toast($request->session()->get('error'), $request->session()->get('title', null))->error()->get();
             }
 
             if($request->session()->has('info')) {
-                return toast($request->session()->get('info'), $request->session()->get('title', null))->info();
+                return toast($request->session()->get('info'), $request->session()->get('title', null))->info()->get();
             }
 
             if($request->session()->has('warning')) {
-                return toast($request->session()->get('warning'), $request->session()->get('title', null))->warning();
+                return toast($request->session()->get('warning'), $request->session()->get('title', null))->warning()->get();
             }
         }
 

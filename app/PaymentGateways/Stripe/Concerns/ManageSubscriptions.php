@@ -41,6 +41,9 @@ trait ManageSubscriptions {
                 'cancel_at_period_end' => true
             ]);
 
+            $subscription->auto_renew = false;
+            $subscription->save();
+
             return $this->response(RequestStatus::OK, $response);
         } catch (\Throwable $th) {
             return $this->response(RequestStatus::ERROR, [

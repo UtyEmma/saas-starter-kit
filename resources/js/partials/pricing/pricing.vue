@@ -8,6 +8,8 @@ const props : any = usePage().props
 
 const timeline = ref(props.pricing[0].shortcode)
 
+console.log(props.pricing)
+
 </script>
 
 <template>
@@ -21,7 +23,7 @@ const timeline = ref(props.pricing[0].shortcode)
 
             <TabsContent v-for="timeline in props.pricing" :key="`content-${timeline.shortcode}`" :value="timeline.shortcode">
                 <div class="mt-12 flex gap-6 justify-center items-center">
-                    <div class="w-1/4" v-for="plan in timeline.plans" :key="plan.id" >
+                    <div class="w-full md:w-1/4" v-for="plan in timeline.plans" :key="plan.id" >
                         <Plan :plan="plan" />
                     </div>
                 </div>

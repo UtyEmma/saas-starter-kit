@@ -41,6 +41,9 @@ class PlanResource extends Resource
                     ->numeric()
                     ->maxLength(255)
                     ->default(7),
+                Forms\Components\TextInput::make('sort')
+                    ->numeric()
+                    ->maxLength(255),
                 SelectStatus::make('status')
                     ->required(),
                 Forms\Components\Toggle::make('is_popular')
@@ -58,6 +61,9 @@ class PlanResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
+                Tables\Columns\TextInputColumn::make('sort')
+                    ->width('w-xs')
+                    ->sortable(),
                 Tables\Columns\IconColumn::make('is_popular')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('trial_period')

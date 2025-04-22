@@ -21,6 +21,7 @@ return new class extends Migration
             $table->boolean('is_popular')->nullable();
             $table->boolean('is_default')->nullable();
             $table->boolean('is_free')->nullable();
+            $table->integer('sort')->unique();
             $table->softDeletes();
             $table->timestamps();
         });

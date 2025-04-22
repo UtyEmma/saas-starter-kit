@@ -13,6 +13,10 @@ class Toast {
         $this->livewire = true;
     }
 
+    function get () {
+        return $this->data;
+    }
+
     function set($status) {
         $this->data = [
             'message' => $this->message,
@@ -29,22 +33,27 @@ class Toast {
 
     function trigger($status){
         $this->set($status);
+        return $this;
     }
 
     function success() {
         $this->set('success');
+        return $this;
     }
 
     function info() {
         $this->set('info');
+        return $this;
     }
 
     function error() {
         $this->set('error');
+        return $this;
     }
 
     function warning() {
         $this->set('warning');
+        return $this;
     }
 
 }
