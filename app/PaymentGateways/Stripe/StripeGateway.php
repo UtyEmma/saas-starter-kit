@@ -5,18 +5,20 @@ namespace App\PaymentGateways\Stripe;
 use App\Abstracts\BasePaymentGateway;
 use App\Contracts\Payment\HandlesCheckout;
 use App\Contracts\Payment\HandlesSubscription;
+use App\Contracts\Payment\HandlesWebhook;
 use App\Contracts\Payment\RedirectPayment;
 use App\Enums\PaymentStatus;
 use App\Enums\RequestStatus;
 use App\Models\Transactions\Transaction;
 use App\PaymentGateways\Stripe\Concerns\ManagePayment;
 use App\PaymentGateways\Stripe\Concerns\ManageSubscriptions;
+use App\PaymentGateways\Stripe\Concerns\ManageWebhooks;
 use App\Support\HttpResponse;
 use Exception;
 use Stripe;
 
-class StripeGateway extends BasePaymentGateway implements RedirectPayment, HandlesSubscription, HandlesCheckout {
-    use ManageSubscriptions, ManagePayment;
+class StripeGateway extends BasePaymentGateway implements RedirectPayment, HandlesSubscription, HandlesCheckout, HandlesWebhook {
+    use ManageSubscriptions, ManagePayment, ManageWebhooks;
 
     function client(): Stripe\StripeClient {
         return new Stripe\StripeClient(env('STRIPE_SECRET'));

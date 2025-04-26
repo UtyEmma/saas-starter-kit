@@ -6,17 +6,16 @@ use App\Enums\RequestStatus;
 use App\Enums\Subscriptions\SubscriptionActions;
 use App\Enums\SubscriptionStatus;
 use App\Models\Subscription;
+use App\Support\HttpResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Request;
 use Stripe\Exception\SignatureVerificationException;
 use Stripe\Subscription as StripeSubscription;
 use Stripe\WebhookSignature;
 
 trait ManageWebhooks {
 
-    function verifyWebhookSignature(){
-        $request = request();
-        
+    function verifyWebhook(Request $request): HttpResponse{        
         try {
             WebhookSignature::verifyHeader(
                 $request->getContent(),
@@ -30,11 +29,7 @@ trait ManageWebhooks {
         return $this->response(RequestStatus::OK);
     }
     
-    function handleWebhook(Request $request) {
-        $response = $this->verifyWebhookSignature();
-        if($response->failed()) return $response;
-
-        $payload = $request->getContent();
+    function handleWebhook(array $payload): HttpResponse {
         $method = 'handle'.str(str_replace('.', '_', $payload['type']))->studly();
 
         if (method_exists($this, $method)) {
