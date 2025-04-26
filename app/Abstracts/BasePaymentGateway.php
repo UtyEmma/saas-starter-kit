@@ -4,10 +4,13 @@ namespace App\Abstracts;
 
 use App\Contracts\Payment\HandlesCheckout;
 use App\Contracts\Payment\HandlesSubscription;
+use App\Contracts\Payment\HandlesWebhook;
 use App\Contracts\Payment\InlinePayment;
 use App\Contracts\Payment\PaymentGateway;
 use App\Contracts\Payment\RedirectPayment;
 use App\Enums\RequestStatus;
+use App\Enums\Subscriptions\SubscriptionActions;
+use App\Enums\SubscriptionStatus;
 use App\Enums\Transactions;
 use App\Models\Plans\PlanPrice;
 use App\Models\Subscription;
@@ -189,4 +192,34 @@ abstract class BasePaymentGateway implements PaymentGateway {
 
         return state(true, $response->context(), $response->message());
     }
+
+    function webhook(array $payload): array {
+        if(!$this instanceOf HandlesWebhook) {
+            $className = static::$instance::class;
+            throw new \Exception("{$className} must implement the ".HandlesSubscription::class." interface");
+        }
+
+        $response = $this->handleWebhook($payload);
+
+        $subscription = $response->subscription;
+
+        return $this->onResponse(
+            httpResponse: $response, 
+            onSuccess: function($response) {
+                $subscription = $response->subscription;
+
+                $subscription->status = $response->status;
+
+                $action = match($response->status) {
+                    SubscriptionStatus::ACTIVE => SubscriptionActions::RENEWED,
+                    SubscriptionStatus::EXPIRED => SubscriptionActions::EXPIRED,
+                    SubscriptionStatus::GRACE => SubscriptionActions::GRACE_PERIOD,
+                };
+
+                $subscription->saveHistory($action, $response->payload);
+
+            }
+        );
+    }
+
 }

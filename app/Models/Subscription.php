@@ -6,6 +6,7 @@ use App\Concerns\Models\HasStatus;
 use App\Enums\PaymentGateways;
 use App\Enums\Subscriptions\SubscriptionActions;
 use App\Enums\SubscriptionStatus;
+use App\Events\Subscriptions\SubscriptionStatusUpdated;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Plans\PlanPrice;
@@ -37,6 +38,10 @@ class Subscription extends Model {
                 (new TransactionService($subscription->user))->create($subscription, $subscription->planPrice->amount);
             }
         });
+    }
+
+    function scopeByReference(Builder $query, $reference){
+        $query->where('reference', $reference);
     }
 
     public function transaction(){
@@ -97,12 +102,37 @@ class Subscription extends Model {
         return $this->starts_at->diffInDays($this->expires_at);
     }
 
+    function getNextExpiryDateAttribute(){
+        return $this->expires_at->add($this->planPrice->timeline->timeline->value, (int) $this->planPrice->timeline->count);
+    }
+
     public function saveHistory(SubscriptionActions $action, $meta = []){
         $this->history()->create([
             'status' => $this->status,
             'description' => $action,
             'meta' => $meta
         ]);
+    }
+
+    function expire(){
+        $this->status = SubscriptionStatus::EXPIRED;
+        $this->save();
+
+        $this->user->plan_id = null;
+        $this->user->save();
+
+        $this->saveHistory(SubscriptionActions::EXPIRED);
+        SubscriptionStatusUpdated::dispatch($this);
+        return $this;
+    }
+
+    function grace(){
+        $this->status = SubscriptionStatus::GRACE;
+        $this->save();
+
+        $this->saveHistory(SubscriptionActions::GRACE_PERIOD);
+        SubscriptionStatusUpdated::dispatch($this);
+        return $this;
     }
 
 }

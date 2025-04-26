@@ -2,8 +2,14 @@
 
 namespace App\PaymentGateways\Stripe\Concerns;
 
+use App\Enums\RequestStatus;
+use App\Enums\Subscriptions\SubscriptionActions;
+use App\Enums\SubscriptionStatus;
+use App\Models\Subscription;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Request;
 use Stripe\Exception\SignatureVerificationException;
+use Stripe\Subscription as StripeSubscription;
 use Stripe\WebhookSignature;
 
 trait ManageWebhooks {
@@ -18,14 +24,63 @@ trait ManageWebhooks {
                 env('STRIPE_SECRET')
             );
         } catch (SignatureVerificationException $exception) {
-            return state(false, $exception->getMessage(), $exception);
+            return $this->response(RequestStatus::ERROR, $exception->getTrace(), $exception->getMessage());
         }
 
-        return state(true);
+        return $this->response(RequestStatus::OK);
     }
     
     function handleWebhook(Request $request) {
+        $response = $this->verifyWebhookSignature();
+        if($response->failed()) return $response;
+
+        $payload = $request->getContent();
+        $method = 'handle'.str(str_replace('.', '_', $payload['type']))->studly();
+
+        if (method_exists($this, $method)) {
+            $response = $this->{$method}($payload);
+            return $response;
+        }
+
+        return $this->response(RequestStatus::OK, []);
+    }
+
+    function handleCustomerSubscriptionUpdated($payload) {
+        $subscription = Subscription::byReference($payload['data']['object']['id'])->firstOrFail();
+        $data = $payload['data']['object'];
+
+        if(!isset($data['status'])) return $this->response(RequestStatus::ERROR, $payload, 'Invalid payload');
+            
+        if($data['status'] === StripeSubscription::STATUS_INCOMPLETE_EXPIRED) {
+            if($subscription->grace_ends_at && $subscription->grace_ends_at->isFuture()) {
+                return $this->response(RequestStatus::OK, [
+                    'payload' => $payload,
+                    'subscription' => $subscription,
+                    'status' => SubscriptionStatus::GRACE
+                ]);
+            }
+
+            return $this->response(RequestStatus::OK, [
+                'payload' => $payload,
+                'susbcription' => $subscription,
+                'status' => SubscriptionStatus::EXPIRED
+            ]);
+        }
+
+        $nextExpirationDate = $subscription->next_expiry_date;
+
+        if ($data['cancel_at_period_end'] ?? false) {
+            $nextExpirationDate = Carbon::createFromTimestamp($data['current_period_end']);
+        } elseif (isset($data['cancel_at']) || isset($data['canceled_at'])) {
+            $nextExpirationDate = Carbon::createFromTimestamp($data['cancel_at'] ?? $data['canceled_at']);
+        }
         
+        return $this->response(RequestStatus::OK, [
+            'payload' => $payload,
+            'subscription' => $subscription,
+            'status' => SubscriptionStatus::ACTIVE,
+            'expires_at' => $nextExpirationDate
+        ]);
     }
 
     

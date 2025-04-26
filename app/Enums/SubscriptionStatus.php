@@ -2,6 +2,8 @@
 
 namespace App\Enums;
 
+use App\Enums\Subscriptions\SubscriptionActions;
+
 enum SubscriptionStatus {
 
     case ACTIVE;
@@ -43,6 +45,17 @@ enum SubscriptionStatus {
             self::PENDING->value => self::PENDING->label(),
             self::GRACE->value => self::GRACE->label(),
         ];
+    }
+
+    function action(){
+        return match($this) {
+            self::ACTIVE => SubscriptionActions::RENEWED,
+            self::CANCELLED => SubscriptionActions::CANCELLED,
+            self::EXPIRED => SubscriptionActions::EXPIRED,
+            self::TRIAL => SubscriptionActions::TRIAL_STARTED,
+            self::PENDING => SubscriptionActions::RENEWAL_FAILED,
+            self::GRACE => SubscriptionActions::GRACE_PERIOD,
+        };
     }
 
 }

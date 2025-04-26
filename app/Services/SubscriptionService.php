@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Contracts\Payment\HandlesSubscriptionRenewal;
 use App\Enums\PaymentStatus;
 use App\Enums\Subscriptions\SubscriptionActions;
 use App\Enums\SubscriptionStatus;
+use App\Events\Subscriptions\SubscriptionStatusUpdated;
 use App\Models\Plans\Plan;
 use App\Models\Plans\PlanPrice;
 use App\Models\Plans\Timeline;
@@ -142,54 +144,30 @@ class SubscriptionService {
         }
 
         if($subscription->auto_renews) {
-            [$status, $message, $data] = $subscription->provider->renew($subscription);
-
-            if($status) {
-                $subscription->saveHistory(SubscriptionActions::RENEWED, $data);
-                return state(true, 'Subscription renewed successfully');
-            }
-
-            $subscription->saveHistory(SubscriptionActions::RENEWAL_FAILED, $data);
+            if($subscription->provider instanceof HandlesSubscriptionRenewal) {
+                [$status, $message, $data] = $subscription->provider->renew($subscription);
+    
+                if($status) {
+                    $subscription->saveHistory(SubscriptionActions::RENEWED, $data);
+                    return state(true, 'Subscription renewed successfully');
+                }
+    
+                $subscription->saveHistory(SubscriptionActions::RENEWAL_FAILED, $data);
+            } 
         }
 
         if($subscription->grace_ends_at && $subscription->grace_ends_at->isFuture()) {
-            $subscription->status = SubscriptionStatus::GRACE;
-            $subscription->save();
-
-            notify("Your subscription has expired.")
-                ->line("We wanted to let you know that your subscription has expired, and your account is on grace period until {$subscription->grace_ends_at->format('jS F Y')}. To continue enjoying our platform, you'll need to create a new subscription.")
-                ->action('Manage Billing', route('billing'))
-                ->priority(1)
-                ->send($subscription->user, ['mail']);
-
-            $subscription->saveHistory(SubscriptionActions::GRACE_PERIOD);
+            $subscription->grace();
             return state(true, 'Subscription is in grace period');
         }
 
-        $this->markSubscriptionAsExpired($subscription);
-
-        //Send Subscription expired notification
-        notify("Your subscription has expired")
-            ->line("We wanted to let you know that your subscription has fully expired, and access to our services has been revoked. To continue enjoying our platform, you'll need to create a new subscription.")
-            ->action('Manage Billing', route('billing'))
-            ->priority(1)
-            ->send($subscription->user, ['mail']);
+        $subscription->expired();
 
         return state(true, 'Subscription marked as expired');
     }
     
     function markSubscriptionAsExpired(Subscription $subscription, $gracePeriod = false) {
-        $subscription->status = SubscriptionStatus::EXPIRED;
-        $subscription->save();
-
-        $subscription->user->plan_id = null;
-        $subscription->user->save();
-
-        $subscription->saveHistory(SubscriptionActions::EXPIRED);
+        
     }
-
-
-
-
 
 }
